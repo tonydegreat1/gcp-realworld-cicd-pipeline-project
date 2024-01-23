@@ -58,26 +58,26 @@ pipeline {
                 sh """
                 mvn sonar:sonar \
                 -Dsonar.projectKey=Java-WebApp \
-                -Dsonar.host.url=http://10.162.0.16:9000 \
+                -Dsonar.host.url=http://10.162.0.4:9000 \
                 -Dsonar.login=$SONAR_TOKEN
                 """
                 }
             }
         }
     }
-    // stage('SonarQube GateKeeper') {
-    //     steps {
-    //       timeout(time : 1, unit : 'HOURS'){
-    //       waitForQualityGate abortPipeline: true
-    //       }
-    //    }
-    // }
+    stage('SonarQube GateKeeper') {
+        steps {
+          timeout(time : 1, unit : 'HOURS'){
+          waitForQualityGate abortPipeline: true
+          }
+       }
+    }
     stage("Nexus Artifact Uploader"){
         steps{
            nexusArtifactUploader(
               nexusVersion: 'nexus3',
               protocol: 'http',
-              nexusUrl: '10.128.0.10:8081',
+              nexusUrl: '10.182.0.8:8081',
               groupId: 'webapp',
               version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
               repository: 'maven-project-releases',  //"${NEXUS_REPOSITORY}",
@@ -124,10 +124,9 @@ pipeline {
   post {
     always {
         echo 'Slack Notifications.'
-        slackSend channel: '#mbandi-gcp-pipeline-alerts', //update and provide your channel name
+        slackSend channel: '#anthony-gcp-pipeline-project-alerts', //update and provide your channel name
         color: COLOR_MAP[currentBuild.currentResult],
         message: "*${currentBuild.currentResult}:* Job Name '${env.JOB_NAME}' build ${env.BUILD_NUMBER} \n Build Timestamp: ${env.BUILD_TIMESTAMP} \n Project Workspace: ${env.WORKSPACE} \n More info at: ${env.BUILD_URL}"
     }
   }
 }
-
